@@ -1,7 +1,7 @@
 # ADR-002: Supabase (managed Postgres + Auth + RLS) instead of a self-hosted backend
 
 ## Status
-Accepted (reflects the existing prototype implementation).
+Deprecated (Superceded by ADR-005: Custom FastAPI Backend).
 
 ## Context
 This engineering handbook's default assumption is a self-hosted VPS running a custom backend (FastAPI/
