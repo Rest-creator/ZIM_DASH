@@ -15,6 +15,8 @@ dependencies = [
     "psycopg[binary]>=3.2,<4",
     "alembic>=1.13,<2",
     "redis>=5.1,<6",
+    "pyjwt>=2.9,<3",
+    "bcrypt>=4.2,<5",
 ]
 
 [project.optional-dependencies]
@@ -38,7 +40,10 @@ select = ["E", "F", "I", "UP", "B", "ASYNC"]
 # it's the standard pattern for a SQLAlchemy Enum column (PgEnum reads
 # member.value off it); `enum.StrEnum` changes str()/repr() behavior and
 # ruff itself flags its own suggested fix here as unsafe.
-ignore = ["UP042"]
+# B008: `Depends(...)` as an argument default is FastAPI's own documented
+# dependency-injection pattern, not the mutable-default-argument bug this
+# rule exists for.
+ignore = ["UP042", "B008"]
 
 [tool.ruff.lint.per-file-ignores]
 # Alembic generates these; they're reviewed and edited, not hand-formatted
@@ -51,6 +56,13 @@ target-version = ["py311"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+# The DB engine and Redis client are module-level singletons (one pool for
+# the app's whole lifetime, not recreated per request) - pytest-asyncio's
+# default per-test event loop would bind their connections to a loop that's
+# already gone by the next test ("Future attached to a different loop").
+# One loop for the whole session matches how they're actually used.
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
 testpaths = ["tests"]
 # DB-backed tests (migrations) need a live Postgres - excluded by default so
 # a plain `pytest` never requires one; run them with `pytest -m db` after

@@ -27,13 +27,31 @@ Tables live in the `iam`/`catalog`/`orders`/`ledger` schemas, never `public`
 (also what keeps the postgis image's own `tiger`/`topology` extension
 tables out of autogenerate's view).
 
+## Auth (`/auth/*`)
+
+`/auth/anonymous` (device-scoped, no login screen — ADR-003) issues a token
+for a client-generated `device_id`, upserting so the same device always maps
+back to the same `iam.users` row. `/auth/register` upgrades *that same row*
+to a named account (requires the anonymous token as Bearer auth);
+`/auth/login` authenticates an existing named account; `/auth/me` is the
+first route behind the JWT dependency (`app/api/deps.get_current_user`) —
+reuse it for every future route that needs the caller's identity rather than
+rolling a new check.
+
+`/auth/anonymous` is rate-limited per source IP (Redis-backed, fixed window;
+`settings.anonymous_auth_rate_limit*`) per the threat model's open finding —
+order-creation and promo-redemption will need the same treatment once they
+exist (`app/core/rate_limit.rate_limit` is written to be reused, not
+auth-specific).
+
 ## Quality gates
 
 ```bash
 ruff check .
 black --check .
-pytest           # fast, no DB required
-pytest -m db      # migration integration tests — needs `docker compose up -d db` first
+pytest                       # fast, no DB required
+pytest -m db                  # migration + auth integration tests —
+                               # needs `docker compose up -d db redis` first
 ```
 
 ## Local development (Docker Compose)
