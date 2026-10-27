@@ -1,13 +1,15 @@
-"""ZIM DASH API entrypoint. Routers for orders, payments, and dispatch
-arrive with their own tasks (ZD-M1-05, 04, 11)."""
+"""ZIM DASH API entrypoint. Routers for orders and dispatch arrive with
+their own tasks (ZD-M1-05, 11)."""
 
 from fastapi import FastAPI
 
 from app.api.auth import router as auth_router
+from app.api.payments import router as payments_router
 from app.core.config import settings
 
 app = FastAPI(title=settings.app_name)
 app.include_router(auth_router)
+app.include_router(payments_router)
 
 
 @app.get("/health")

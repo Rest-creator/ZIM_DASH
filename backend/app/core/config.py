@@ -39,5 +39,15 @@ class Settings(BaseSettings):
     anonymous_auth_rate_limit: int = 5
     anonymous_auth_rate_limit_window_seconds: int = 60
 
+    # Paynow (ZD-M1-04). project_plan.md Task 1.1 ("select an aggregator")
+    # is still open per Risk Register R-1 — these are dev/sandbox-only
+    # placeholders, same spirit as jwt_secret_key above, until a real
+    # merchant account and Integration Key exist. The integration ID/key
+    # pair below (from Paynow's own published hash-validation example) is
+    # NOT a secret; it's their public test vector, safe to ship as a
+    # harmless default.
+    paynow_integration_id: str = "dev-placeholder"
+    paynow_integration_key: str = "3e9fed89-60e1-4ce5-ab6e-6b1eb2d4f977"
+
 
 settings = Settings()

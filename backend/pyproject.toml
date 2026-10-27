@@ -17,6 +17,10 @@ dependencies = [
     "redis>=5.1,<6",
     "pyjwt>=2.9,<3",
     "bcrypt>=4.2,<5",
+    # Also used at runtime now (ZD-M1-04): polling Paynow's pollurl to
+    # re-confirm a status update server-to-server, not just the dev/test
+    # ASGI client it was pulled in for originally.
+    "httpx>=0.27,<1",
 ]
 
 [project.optional-dependencies]
@@ -25,7 +29,6 @@ dev = [
     "black>=24.10,<25",
     "pytest>=8.3,<9",
     "pytest-asyncio>=0.24,<1",
-    "httpx>=0.27,<1",
 ]
 
 [tool.ruff]

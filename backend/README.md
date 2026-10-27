@@ -44,6 +44,25 @@ order-creation and promo-redemption will need the same treatment once they
 exist (`app/core/rate_limit.rate_limit` is written to be reused, not
 auth-specific).
 
+## Payments (`/payments/paynow/webhook`)
+
+Paynow's aggregator choice itself is still open per the Risk Register (R-1)
+— this implements their real, published API (ADR-005/Task 1.1 names them
+specifically), not a placeholder, since it's well-documented and the open
+item is the commercial/contract decision, not the integration shape.
+
+Hash verification (`app/core/paynow.verify_and_parse`) is checked against
+Paynow's own worked example from their docs — not just matched to a written
+description of the algorithm — before being trusted (see
+`tests/test_paynow.py`). For a status update that reports money moved
+(Paid/Awaiting Delivery/Delivered/Cancelled/Refunded), the handler also
+polls the transaction's `pollurl` back to Paynow and trusts *that* response,
+per Paynow's own guidance to re-confirm rather than act on the pushed
+message alone. This endpoint only ever writes `orders.orders.payment_status`
+— the order-lifecycle state machine (ZD-M1-05) and ledger posting
+(ZD-M1-14) are separate, later tasks that react to that column, not part of
+this one.
+
 ## Quality gates
 
 ```bash
