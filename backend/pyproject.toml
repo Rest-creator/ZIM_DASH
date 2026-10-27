@@ -10,6 +10,9 @@ dependencies = [
     "pydantic-settings>=2.6,<3",
     "sqlalchemy[asyncio]>=2.0,<3",
     "asyncpg>=0.30,<1",
+    # Alembic migrations run synchronously; psycopg (binary) is the driver
+    # for that, separate from asyncpg which the app itself uses at runtime.
+    "psycopg[binary]>=3.2,<4",
     "alembic>=1.13,<2",
     "redis>=5.1,<6",
 ]
@@ -31,6 +34,16 @@ target-version = "py311"
 # E/F: pyflakes+pycodestyle errors. I: import sorting. UP: pyupgrade.
 # B: bugbear (common real bugs). ASYNC: common async mistakes.
 select = ["E", "F", "I", "UP", "B", "ASYNC"]
+# UP042: `class X(str, enum.Enum)` is deliberate, not a pyupgrade target —
+# it's the standard pattern for a SQLAlchemy Enum column (PgEnum reads
+# member.value off it); `enum.StrEnum` changes str()/repr() behavior and
+# ruff itself flags its own suggested fix here as unsafe.
+ignore = ["UP042"]
+
+[tool.ruff.lint.per-file-ignores]
+# Alembic generates these; they're reviewed and edited, not hand-formatted
+# to house style from scratch.
+"alembic/versions/*.py" = ["E501"]
 
 [tool.black]
 line-length = 100
@@ -39,6 +52,11 @@ target-version = ["py311"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+# DB-backed tests (migrations) need a live Postgres - excluded by default so
+# a plain `pytest` never requires one; run them with `pytest -m db` after
+# `docker compose up -d db`.
+addopts = "-m 'not db'"
+markers = ["db: needs a live Postgres (DATABASE_URL)"]
 
 [build-system]
 requires = ["hatchling"]
